@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from wx_red_helper.cli import localize_status, runtime_root, wait_before_capture
+from wx_red_helper.cli import localize_status, main, runtime_root, wait_before_capture
 
 def test_module_exposes_help() -> None:
     completed = subprocess.run(
@@ -51,3 +51,13 @@ def test_frozen_app_stores_templates_beside_the_executable() -> None:
     )
 
     assert root == Path("C:/Portable/WxRedHelper")
+
+
+def test_launch_without_command_shows_chinese_guide_and_waits(capsys) -> None:
+    prompts: list[str] = []
+
+    result = main([], prompts.append)
+
+    assert result == 0
+    assert "使用说明" in capsys.readouterr().out
+    assert prompts == ["按 Enter 键关闭窗口……"]

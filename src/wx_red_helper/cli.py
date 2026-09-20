@@ -1,6 +1,7 @@
 import argparse
 import sys
 import time
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -17,9 +18,9 @@ from wx_red_helper.window_observer import WechatWindowObserver
 from wx_red_helper.windows_api import WindowsApi
 
 
-def main() -> int:
+def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> int:
     parser = argparse.ArgumentParser(description="Windows 微信红包本地助手")
-    commands = parser.add_subparsers(dest="command", required=True)
+    commands = parser.add_subparsers(dest="command")
     run = commands.add_parser("run", help="运行本地助手")
     run.add_argument("--allow-title", action="append", required=True, help="允许的微信会话标题")
     run.add_argument("--mode", choices=tuple(mode.value for mode in RunMode), default=RunMode.DETECT.value)
@@ -29,7 +30,12 @@ def main() -> int:
     collect.add_argument("label", choices=TEMPLATE_LABELS)
     collect.add_argument("--delay-seconds", type=float, default=3, help="切回微信窗口前的等待秒数")
     commands.add_parser("show-config", help="显示当前模板目录与运行限制")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    if args.command is None:
+        print("使用说明：请在终端中按使用说明.txt 的命令采集模板或启动程序。")
+        print("完整说明位于本文件夹的 使用说明.txt。")
+        pause("按 Enter 键关闭窗口……")
+        return 0
     if args.command == "show-config":
         print(f"模板目录：{_template_directory()}")
         print("微信窗口必须保持可见：是")
