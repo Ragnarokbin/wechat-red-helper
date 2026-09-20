@@ -20,6 +20,33 @@ def test_cancelled_roi_keeps_existing_template_and_returns_no_destination(tmp_pa
     assert destination.read_bytes() == b"existing-template"
 
 
+def test_template_selection_window_is_created_as_topmost(tmp_path, monkeypatch) -> None:
+    calls: list[tuple[object, ...]] = []
+    monkeypatch.setattr(cv2, "namedWindow", lambda title, flags: calls.append(("named", title, flags)))
+    monkeypatch.setattr(
+        cv2,
+        "setWindowProperty",
+        lambda title, property_id, value: calls.append(("topmost", title, property_id, value)),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "selectROI",
+        lambda title, frame, showCrosshair: calls.append(("select", title, showCrosshair)) or (0, 0, 0, 0),
+    )
+    monkeypatch.setattr(cv2, "destroyWindow", lambda title: calls.append(("destroy", title)))
+
+    result = TemplateCollector(tmp_path).collect("envelope_card", np.zeros((20, 20, 3), dtype=np.uint8))
+
+    title = "请选择模板区域，按 Enter 确认，按 Esc 取消"
+    assert result is None
+    assert calls == [
+        ("named", title, cv2.WINDOW_AUTOSIZE),
+        ("topmost", title, cv2.WND_PROP_TOPMOST, 1),
+        ("select", title, True),
+        ("destroy", title),
+    ]
+
+
 def test_cancelled_template_collection_returns_to_the_launcher_without_saving(monkeypatch, capsys) -> None:
     class VisibleWindowObserver:
         def __init__(self, *args) -> None:

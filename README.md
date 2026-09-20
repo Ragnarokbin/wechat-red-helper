@@ -9,7 +9,7 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python -m pip install -e ".[dev]"
 ```
 
-打开指定群聊并置顶微信窗口后，先采集群聊页头中包含群名称的稳定区域；随后分别在红包卡片、领取页“开”按钮和领取结果页采集模板。出现选框时，仅框选目标区域并按 Enter 保存。
+打开指定群聊并置顶微信窗口后，先采集群聊页头中包含群名称的稳定区域；随后分别在红包卡片、领取页“开”按钮和领取结果页采集模板。出现选框时，它会显示在微信窗口最前方；仅框选目标区域并按 Enter 保存。
 
 ```powershell
 .\.venv\Scripts\python -m wx_red_helper collect-template chat_header

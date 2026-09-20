@@ -36,6 +36,8 @@ class TemplateCollector:
             raise ValueError(f"unsupported template label: {label}")
         window_title = selection_window_title()
         print(selection_console_prompt())
+        cv2.namedWindow(window_title, cv2.WINDOW_AUTOSIZE)
+        cv2.setWindowProperty(window_title, cv2.WND_PROP_TOPMOST, 1)
         with suppress_native_console_output():
             selection = cv2.selectROI(window_title, frame, showCrosshair=True)
         cv2.destroyWindow(window_title)
