@@ -30,9 +30,9 @@ def main() -> int:
     commands.add_parser("show-config", help="显示当前模板目录与运行限制")
     args = parser.parse_args()
     if args.command == "show-config":
-        print(f"template_directory={_template_directory()}")
-        print("window_must_be_visible=true")
-        print("default_mode=detect")
+        print(f"模板目录：{_template_directory()}")
+        print("微信窗口必须保持可见：是")
+        print("默认运行模式：仅检测")
         return 0
     if args.command == "collect-template":
         return _collect_template(args.label, args.delay_seconds)
@@ -41,13 +41,13 @@ def main() -> int:
 
 def _run(args: argparse.Namespace) -> int:
     if args.interval_ms < 50:
-        raise SystemExit("--interval-ms must be at least 50")
+        raise SystemExit("--interval-ms 不能小于 50")
     config = AppConfig(tuple(args.allow_title), args.threshold)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     templates = TemplateRepository(_template_directory()).load()
     missing = set(TEMPLATE_LABELS).difference(templates)
     if missing:
-        raise SystemExit(f"missing local templates: {', '.join(sorted(missing))}")
+        raise SystemExit(f"缺少本地模板：{', '.join(sorted(missing))}")
 
     def recheck(x: int, y: int) -> bool:
         window = observer.observe()
@@ -63,28 +63,28 @@ def _run(args: argparse.Namespace) -> int:
         input_controller=InputController(send_windows_click, recheck),
     )
     service.set_mode(RunMode(args.mode))
-    print(f"running mode={service.mode}; press Ctrl+C to stop")
+    print(f"正在运行：{localize_status(f'mode_{service.mode.value}')}；按 Ctrl+C 停止")
     try:
         while True:
             result = service.tick(datetime.now(UTC))
-            print(result.last_action)
+            print(localize_status(result.last_action))
             time.sleep(args.interval_ms / 1000)
     except KeyboardInterrupt:
         service.stop_now()
-        print("stopped")
+        print("已停止")
         return 0
 
 
 def _collect_template(label: str, delay_seconds: float) -> int:
     if delay_seconds < 0:
-        raise SystemExit("--delay-seconds must not be negative")
+        raise SystemExit("--delay-seconds 不能为负数")
     if delay_seconds:
-        print(f"Switch to the visible WeChat window within {delay_seconds:g} seconds...")
+        print(f"请在 {delay_seconds:g} 秒内切换到可见的微信窗口……")
         wait_before_capture(delay_seconds, time.sleep)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     window = observer.observe()
     if window is None:
-        raise SystemExit("bring a visible WeChat window to the foreground before collecting a template")
+        raise SystemExit("采集模板前，请将可见的微信窗口切换到前台")
     destination = TemplateCollector(_template_directory()).collect(label, ClientCapture().capture(window))
     print(destination)
     return 0
@@ -92,6 +92,27 @@ def _collect_template(label: str, delay_seconds: float) -> int:
 
 def wait_before_capture(delay_seconds: float, sleep: object) -> None:
     sleep(delay_seconds)
+
+
+def localize_status(status: str) -> str:
+    messages = {
+        "mode_stopped": "已停止",
+        "mode_detect": "仅检测模式",
+        "mode_auto": "自动领取模式",
+        "no_action": "未执行操作",
+        "no_stable_match": "未检测到稳定目标",
+        "window_unavailable": "微信窗口不可用",
+        "candidate_detected": "已检测到红包候选",
+        "executed": "已完成点击",
+        "chat_not_allowed": "当前会话未通过页头验证",
+        "low_confidence": "识别置信度不足",
+        "unknown_page": "页面状态未知，已中止本轮",
+        "window_changed": "微信窗口已变化，已中止本轮",
+        "step_timeout": "页面响应超时，已中止本轮",
+        "window_recheck_failed": "点击前窗口复核失败",
+        "stopped": "已停止",
+    }
+    return messages.get(status, f"状态：{status}")
 
 
 def _template_directory() -> Path:

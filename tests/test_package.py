@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-from wx_red_helper.cli import wait_before_capture
+from wx_red_helper.cli import localize_status, wait_before_capture
 
 def test_module_exposes_help() -> None:
     completed = subprocess.run(
@@ -33,3 +33,10 @@ def test_template_collection_waits_before_observing_foreground_window() -> None:
     wait_before_capture(3, waits.append)
 
     assert waits == [3]
+
+
+def test_localize_status_translates_runtime_codes_for_terminal_output() -> None:
+    assert localize_status("no_action") == "未执行操作"
+    assert localize_status("no_stable_match") == "未检测到稳定目标"
+    assert localize_status("window_unavailable") == "微信窗口不可用"
+    assert localize_status("stopped") == "已停止"
