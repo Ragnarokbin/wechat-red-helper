@@ -62,6 +62,18 @@ def test_launch_without_command_shows_chinese_menu(capsys) -> None:
     assert "启动自动领取模式" in capsys.readouterr().out
 
 
+def test_menu_returns_after_template_collection(monkeypatch, capsys) -> None:
+    answers = iter(["1", "0"])
+    collected: list[tuple[str, float]] = []
+    monkeypatch.setattr("wx_red_helper.cli._collect_template", lambda label, delay: collected.append((label, delay)) or 0)
+
+    result = main([], lambda prompt: next(answers))
+
+    assert result == 0
+    assert collected == [("chat_header", 5)]
+    assert capsys.readouterr().out.count("采集群聊页头模板") == 2
+
+
 def test_launch_without_command_exits_cleanly_when_stdin_is_unavailable() -> None:
     def no_stdin(prompt: str) -> str:
         raise EOFError
