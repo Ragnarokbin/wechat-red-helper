@@ -96,5 +96,13 @@ class Action:
         return cls(ActionKind.NONE)
 
     @classmethod
+    def click_envelope(cls, match: TemplateMatch) -> "Action":
+        return cls(ActionKind.CLICK_ENVELOPE, match=match)
+
+    @classmethod
+    def click_open(cls, match: TemplateMatch) -> "Action":
+        return cls(ActionKind.CLICK_OPEN, match=match)
+
+    @classmethod
     def abort(cls, reason: str) -> "Action":
         return cls(ActionKind.ABORT, reason=reason)
