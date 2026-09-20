@@ -31,7 +31,7 @@ class TemplateCollector:
     def __init__(self, directory: Path) -> None:
         self._directory = directory
 
-    def collect(self, label: str, frame: np.ndarray) -> Path:
+    def collect(self, label: str, frame: np.ndarray) -> Path | None:
         if label not in TEMPLATE_LABELS:
             raise ValueError(f"unsupported template label: {label}")
         window_title = selection_window_title()
@@ -41,7 +41,7 @@ class TemplateCollector:
         cv2.destroyWindow(window_title)
         x, y, width, height = (int(value) for value in selection)
         if width <= 0 or height <= 0:
-            raise ValueError("template selection must not be empty")
+            return None
         template = frame[y : y + height, x : x + width]
         self._directory.mkdir(parents=True, exist_ok=True)
         temporary = self._directory / f".{label}.tmp.png"
@@ -57,7 +57,7 @@ def selection_window_title() -> str:
 
 
 def selection_console_prompt() -> str:
-    return "请拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。"
+    return "请拖动鼠标框选区域；按空格或 Enter 确认，按 Esc 或 C 取消。"
 
 
 @contextmanager

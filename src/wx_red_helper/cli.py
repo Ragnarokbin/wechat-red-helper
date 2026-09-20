@@ -90,6 +90,9 @@ def _collect_template(label: str, delay_seconds: float) -> int:
     if window is None:
         raise SystemExit("bring a visible WeChat window to the foreground before collecting a template")
     destination = TemplateCollector(_template_directory()).collect(label, ClientCapture().capture(window))
+    if destination is None:
+        print("已取消本次截图，已保留原有模板。")
+        return 0
     print(f"模板已保存：{destination}")
     return 0
 

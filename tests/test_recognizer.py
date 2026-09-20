@@ -37,4 +37,4 @@ def test_template_selection_window_uses_chinese_instruction() -> None:
 
 
 def test_template_selection_console_prompt_uses_chinese_instruction() -> None:
-    assert selection_console_prompt() == "请拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。"
+    assert selection_console_prompt() == "请拖动鼠标框选区域；按空格或 Enter 确认，按 Esc 或 C 取消。"
