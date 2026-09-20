@@ -1,4 +1,5 @@
 import argparse
+import sys
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -116,4 +117,14 @@ def localize_status(status: str) -> str:
 
 
 def _template_directory() -> Path:
-    return Path(__file__).resolve().parents[2] / "assets" / "templates"
+    return runtime_root(
+        frozen=bool(getattr(sys, "frozen", False)),
+        executable=Path(sys.executable),
+        module_file=Path(__file__),
+    ) / "assets" / "templates"
+
+
+def runtime_root(*, frozen: bool, executable: Path, module_file: Path) -> Path:
+    if frozen:
+        return executable.resolve().parent
+    return module_file.resolve().parents[2]

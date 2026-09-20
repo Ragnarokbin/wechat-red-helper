@@ -1,7 +1,8 @@
 import subprocess
 import sys
+from pathlib import Path
 
-from wx_red_helper.cli import localize_status, wait_before_capture
+from wx_red_helper.cli import localize_status, runtime_root, wait_before_capture
 
 def test_module_exposes_help() -> None:
     completed = subprocess.run(
@@ -40,3 +41,13 @@ def test_localize_status_translates_runtime_codes_for_terminal_output() -> None:
     assert localize_status("no_stable_match") == "未检测到稳定目标"
     assert localize_status("window_unavailable") == "微信窗口不可用"
     assert localize_status("stopped") == "已停止"
+
+
+def test_frozen_app_stores_templates_beside_the_executable() -> None:
+    root = runtime_root(
+        frozen=True,
+        executable=Path("C:/Portable/WxRedHelper/WxRedHelper.exe"),
+        module_file=Path("C:/source/src/wx_red_helper/cli.py"),
+    )
+
+    assert root == Path("C:/Portable/WxRedHelper")

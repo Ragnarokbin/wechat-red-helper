@@ -43,4 +43,4 @@ py -3.13 -m venv .venv
 .\build.ps1
 ```
 
-构建脚本仅在四个本地模板都存在时产生 `dist\WxRedHelper.exe`。
+构建脚本会生成 `dist\WxRedHelper\` 文件夹；可将整个文件夹压缩后分享。中文使用说明会以 `使用说明.txt` 一并放入该文件夹，接收者需自行采集四张本地模板。

@@ -1,0 +1,43 @@
+Windows 微信红包本地助手 — 使用说明
+
+一、开始前
+
+1. 解压整个 WxRedHelper 文件夹；不要只复制其中的 WxRedHelper.exe。
+2. 打开微信并登录。使用期间，微信窗口必须保持可见、位于前台且不能最小化。
+3. 每台电脑、每个微信主题/缩放比例都必须重新采集模板，模板不会随安装包共享。
+
+二、采集模板
+
+双击 WxRedHelper.exe 后会打开终端。每次执行采集命令后，程序会倒计时，请在倒计时内切回微信窗口。
+
+依次采集以下四个模板：
+
+1. chat_header：在目标群聊普通聊天页，框选顶部群名称的稳定文字区域。
+2. envelope_card：出现红包消息时，框选红包卡片的橙色主体区域。
+3. open_button：手动点开红包后，框选圆形“开”按钮。
+4. result：手动领取后，框选结果页中稳定、不与普通聊天重复的区域。
+
+在终端内分别运行：
+
+WxRedHelper.exe collect-template chat_header --delay-seconds 5
+WxRedHelper.exe collect-template envelope_card --delay-seconds 5
+WxRedHelper.exe collect-template open_button --delay-seconds 5
+WxRedHelper.exe collect-template result --delay-seconds 5
+
+出现选框后，拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。
+
+三、先测试再使用
+
+先用仅检测模式，确保终端提示“已检测到红包候选”时确实对应目标红包：
+
+WxRedHelper.exe run --mode detect --allow-title "目标群聊"
+
+确认稳定后，才运行自动模式：
+
+WxRedHelper.exe run --mode auto --allow-title "目标群聊" --interval-ms 80
+
+按 Ctrl+C 可停止程序。若窗口切换、窗口最小化、识别不确定或页面异常，程序会中止本轮而不继续点击。
+
+四、隐私与限制
+
+工具只处理可见的微信客户区图像，不读取聊天数据库、进程内存或网络通信。它不处理验证码、风控提示、后台窗口或未知页面。
