@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from wx_red_helper.cli import wait_before_capture
 
 def test_module_exposes_help() -> None:
     completed = subprocess.run(
@@ -24,3 +25,11 @@ def test_run_requires_an_explicit_allowed_chat_title() -> None:
 
     assert completed.returncode == 2
     assert "--allow-title" in completed.stderr
+
+
+def test_template_collection_waits_before_observing_foreground_window() -> None:
+    waits: list[float] = []
+
+    wait_before_capture(3, waits.append)
+
+    assert waits == [3]

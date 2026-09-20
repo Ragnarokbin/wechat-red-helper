@@ -26,6 +26,7 @@ def main() -> int:
     run.add_argument("--interval-ms", type=int, default=150)
     collect = commands.add_parser("collect-template", help="采集当前微信客户区中的模板")
     collect.add_argument("label", choices=TEMPLATE_LABELS)
+    collect.add_argument("--delay-seconds", type=float, default=3, help="切回微信窗口前的等待秒数")
     commands.add_parser("show-config", help="显示当前模板目录与运行限制")
     args = parser.parse_args()
     if args.command == "show-config":
@@ -34,7 +35,7 @@ def main() -> int:
         print("default_mode=detect")
         return 0
     if args.command == "collect-template":
-        return _collect_template(args.label)
+        return _collect_template(args.label, args.delay_seconds)
     return _run(args)
 
 
@@ -78,7 +79,12 @@ def _run(args: argparse.Namespace) -> int:
         return 0
 
 
-def _collect_template(label: str) -> int:
+def _collect_template(label: str, delay_seconds: float) -> int:
+    if delay_seconds < 0:
+        raise SystemExit("--delay-seconds must not be negative")
+    if delay_seconds:
+        print(f"Switch to the visible WeChat window within {delay_seconds:g} seconds...")
+        wait_before_capture(delay_seconds, time.sleep)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     window = observer.observe()
     if window is None:
@@ -86,6 +92,10 @@ def _collect_template(label: str) -> int:
     destination = TemplateCollector(_template_directory()).collect(label, ClientCapture().capture(window))
     print(destination)
     return 0
+
+
+def wait_before_capture(delay_seconds: float, sleep: object) -> None:
+    sleep(delay_seconds)
 
 
 def _template_directory() -> Path:
