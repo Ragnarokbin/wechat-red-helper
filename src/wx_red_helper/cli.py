@@ -41,13 +41,13 @@ def main() -> int:
 
 def _run(args: argparse.Namespace) -> int:
     if args.interval_ms < 50:
-        raise SystemExit("--interval-ms 不能小于 50")
+        raise SystemExit("--interval-ms must be at least 50")
     config = AppConfig(tuple(args.allow_title), args.threshold)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     templates = TemplateRepository(_template_directory()).load()
     missing = set(TEMPLATE_LABELS).difference(templates)
     if missing:
-        raise SystemExit(f"缺少本地模板：{', '.join(sorted(missing))}")
+        raise SystemExit(f"missing local templates: {', '.join(sorted(missing))}")
 
     def recheck(x: int, y: int) -> bool:
         window = observer.observe()
@@ -77,14 +77,14 @@ def _run(args: argparse.Namespace) -> int:
 
 def _collect_template(label: str, delay_seconds: float) -> int:
     if delay_seconds < 0:
-        raise SystemExit("--delay-seconds 不能为负数")
+        raise SystemExit("--delay-seconds must not be negative")
     if delay_seconds:
         print(f"请在 {delay_seconds:g} 秒内切换到可见的微信窗口……")
         wait_before_capture(delay_seconds, time.sleep)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     window = observer.observe()
     if window is None:
-        raise SystemExit("采集模板前，请将可见的微信窗口切换到前台")
+        raise SystemExit("bring a visible WeChat window to the foreground before collecting a template")
     destination = TemplateCollector(_template_directory()).collect(label, ClientCapture().capture(window))
     print(destination)
     return 0

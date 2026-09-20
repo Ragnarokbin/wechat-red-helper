@@ -41,7 +41,7 @@ class TemplateCollector:
         cv2.destroyWindow(window_title)
         x, y, width, height = (int(value) for value in selection)
         if width <= 0 or height <= 0:
-            raise ValueError("未选择模板区域")
+            raise ValueError("template selection must not be empty")
         template = frame[y : y + height, x : x + width]
         self._directory.mkdir(parents=True, exist_ok=True)
         temporary = self._directory / f".{label}.tmp.png"
