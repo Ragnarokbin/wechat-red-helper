@@ -1,3 +1,6 @@
+import os
+import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 import cv2
@@ -32,11 +35,13 @@ class TemplateCollector:
         if label not in TEMPLATE_LABELS:
             raise ValueError(f"unsupported template label: {label}")
         window_title = selection_window_title()
-        selection = cv2.selectROI(window_title, frame, showCrosshair=True)
+        print(selection_console_prompt())
+        with suppress_native_console_output():
+            selection = cv2.selectROI(window_title, frame, showCrosshair=True)
         cv2.destroyWindow(window_title)
         x, y, width, height = (int(value) for value in selection)
         if width <= 0 or height <= 0:
-            raise ValueError("template selection must not be empty")
+            raise ValueError("未选择模板区域")
         template = frame[y : y + height, x : x + width]
         self._directory.mkdir(parents=True, exist_ok=True)
         temporary = self._directory / f".{label}.tmp.png"
@@ -49,3 +54,28 @@ class TemplateCollector:
 
 def selection_window_title() -> str:
     return "请选择模板区域，按 Enter 确认，按 Esc 取消"
+
+
+def selection_console_prompt() -> str:
+    return "请拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。"
+
+
+@contextmanager
+def suppress_native_console_output():
+    """Temporarily hide OpenCV's hard-coded ROI instructions for this CLI action."""
+    stdout_fd = sys.stdout.fileno()
+    stderr_fd = sys.stderr.fileno()
+    saved_stdout = os.dup(stdout_fd)
+    saved_stderr = os.dup(stderr_fd)
+    try:
+        with open(os.devnull, "w", encoding="utf-8") as null:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os.dup2(null.fileno(), stdout_fd)
+            os.dup2(null.fileno(), stderr_fd)
+            yield
+    finally:
+        os.dup2(saved_stdout, stdout_fd)
+        os.dup2(saved_stderr, stderr_fd)
+        os.close(saved_stdout)
+        os.close(saved_stderr)

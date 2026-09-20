@@ -2,7 +2,7 @@ import numpy as np
 
 from wx_red_helper.models import TemplateMatch
 from wx_red_helper.recognizer import FrameRecognizer, StableRecognizer
-from wx_red_helper.templates import selection_window_title
+from wx_red_helper.templates import selection_console_prompt, selection_window_title
 
 
 def test_recognizer_locates_embedded_template() -> None:
@@ -34,3 +34,7 @@ def test_stable_recognizer_resets_for_changed_location() -> None:
 
 def test_template_selection_window_uses_chinese_instruction() -> None:
     assert selection_window_title() == "请选择模板区域，按 Enter 确认，按 Esc 取消"
+
+
+def test_template_selection_console_prompt_uses_chinese_instruction() -> None:
+    assert selection_console_prompt() == "请拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。"
