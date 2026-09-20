@@ -31,8 +31,9 @@ class TemplateCollector:
     def collect(self, label: str, frame: np.ndarray) -> Path:
         if label not in TEMPLATE_LABELS:
             raise ValueError(f"unsupported template label: {label}")
-        selection = cv2.selectROI("Select template and press Enter", frame, showCrosshair=True)
-        cv2.destroyWindow("Select template and press Enter")
+        window_title = selection_window_title()
+        selection = cv2.selectROI(window_title, frame, showCrosshair=True)
+        cv2.destroyWindow(window_title)
         x, y, width, height = (int(value) for value in selection)
         if width <= 0 or height <= 0:
             raise ValueError("template selection must not be empty")
@@ -44,3 +45,7 @@ class TemplateCollector:
             raise OSError(f"unable to write template: {temporary}")
         temporary.replace(destination)
         return destination
+
+
+def selection_window_title() -> str:
+    return "请选择模板区域，按 Enter 确认，按 Esc 取消"
