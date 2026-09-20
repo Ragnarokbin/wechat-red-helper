@@ -12,3 +12,15 @@ def test_module_exposes_help() -> None:
 
     assert completed.returncode == 0
     assert "Windows 微信红包本地助手" in completed.stdout
+
+
+def test_run_requires_an_explicit_allowed_chat_title() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-m", "wx_red_helper", "run"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 2
+    assert "--allow-title" in completed.stderr
