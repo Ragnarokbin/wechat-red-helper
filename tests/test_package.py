@@ -61,3 +61,10 @@ def test_launch_without_command_shows_chinese_guide_and_waits(capsys) -> None:
     assert result == 0
     assert "使用说明" in capsys.readouterr().out
     assert prompts == ["按 Enter 键关闭窗口……"]
+
+
+def test_launch_without_command_exits_cleanly_when_stdin_is_unavailable() -> None:
+    def no_stdin(prompt: str) -> str:
+        raise EOFError
+
+    assert main([], no_stdin) == 0

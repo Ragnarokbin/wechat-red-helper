@@ -34,7 +34,10 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
     if args.command is None:
         print("使用说明：请在终端中按使用说明.txt 的命令采集模板或启动程序。")
         print("完整说明位于本文件夹的 使用说明.txt。")
-        pause("按 Enter 键关闭窗口……")
+        try:
+            pause("按 Enter 键关闭窗口……")
+        except EOFError:
+            pass
         return 0
     if args.command == "show-config":
         print(f"模板目录：{_template_directory()}")
