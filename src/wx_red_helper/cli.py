@@ -32,13 +32,7 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
     commands.add_parser("show-config", help="显示当前模板目录与运行限制")
     args = parser.parse_args(argv)
     if args.command is None:
-        print("使用说明：请在终端中按使用说明.txt 的命令采集模板或启动程序。")
-        print("完整说明位于本文件夹的 使用说明.txt。")
-        try:
-            pause("按 Enter 键关闭窗口……")
-        except EOFError:
-            pass
-        return 0
+        return _interactive_menu(pause)
     if args.command == "show-config":
         print(f"模板目录：{_template_directory()}")
         print("微信窗口必须保持可见：是")
@@ -97,6 +91,48 @@ def _collect_template(label: str, delay_seconds: float) -> int:
         raise SystemExit("bring a visible WeChat window to the foreground before collecting a template")
     destination = TemplateCollector(_template_directory()).collect(label, ClientCapture().capture(window))
     print(destination)
+    return 0
+
+
+def _interactive_menu(read_input: Callable[[str], str]) -> int:
+    print("\n微信红包本地助手")
+    print("1. 采集群聊页头模板")
+    print("2. 采集红包卡片模板")
+    print("3. 采集“开”按钮模板")
+    print("4. 采集结果页模板")
+    print("5. 启动仅检测模式")
+    print("6. 启动自动领取模式")
+    print("0. 退出")
+    try:
+        choice = read_input("请选择操作：").strip()
+    except EOFError:
+        return 0
+    template_actions = {
+        "1": "chat_header",
+        "2": "envelope_card",
+        "3": "open_button",
+        "4": "result",
+    }
+    if choice in template_actions:
+        return _collect_template(template_actions[choice], 5)
+    if choice in {"5", "6"}:
+        try:
+            chat_label = read_input("请输入目标群聊名称：").strip()
+        except EOFError:
+            return 0
+        if not chat_label:
+            print("未输入群聊名称，已取消。")
+            return 1
+        return _run(
+            argparse.Namespace(
+                allow_title=[chat_label],
+                mode=RunMode.DETECT.value if choice == "5" else RunMode.AUTO.value,
+                threshold=0.93,
+                interval_ms=80,
+            )
+        )
+    if choice != "0":
+        print("无效选项，已退出。")
     return 0
 
 

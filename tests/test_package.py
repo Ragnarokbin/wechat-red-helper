@@ -53,14 +53,13 @@ def test_frozen_app_stores_templates_beside_the_executable() -> None:
     assert root == Path("C:/Portable/WxRedHelper")
 
 
-def test_launch_without_command_shows_chinese_guide_and_waits(capsys) -> None:
-    prompts: list[str] = []
+def test_launch_without_command_shows_chinese_menu(capsys) -> None:
+    answers = iter(["0"])
 
-    result = main([], prompts.append)
+    result = main([], lambda prompt: next(answers))
 
     assert result == 0
-    assert "使用说明" in capsys.readouterr().out
-    assert prompts == ["按 Enter 键关闭窗口……"]
+    assert "启动自动领取模式" in capsys.readouterr().out
 
 
 def test_launch_without_command_exits_cleanly_when_stdin_is_unavailable() -> None:
