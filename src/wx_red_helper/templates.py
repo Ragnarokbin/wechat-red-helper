@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-TEMPLATE_LABELS = ("envelope_card", "open_button", "result")
+TEMPLATE_LABELS = ("chat_header", "envelope_card", "open_button", "result")
 
 
 class TemplateRepository:

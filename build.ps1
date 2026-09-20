@@ -1,4 +1,5 @@
 $required = @(
+  "assets/templates/chat_header.png",
   "assets/templates/envelope_card.png",
   "assets/templates/open_button.png",
   "assets/templates/result.png"

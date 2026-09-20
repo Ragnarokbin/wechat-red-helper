@@ -83,6 +83,7 @@ class Observation:
     match: TemplateMatch | None
     window_revision: int
     window_ready: bool
+    chat_header_visible: bool = False
 
 
 @dataclass(frozen=True)

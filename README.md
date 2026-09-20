@@ -9,9 +9,10 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python -m pip install -e ".[dev]"
 ```
 
-打开并置顶微信窗口后，分别在红包卡片、领取页“开”按钮和领取结果页运行模板采集命令。出现选框时，仅框选目标控件本身并按 Enter 保存。
+打开指定群聊并置顶微信窗口后，先采集群聊页头中包含群名称的稳定区域；随后分别在红包卡片、领取页“开”按钮和领取结果页采集模板。出现选框时，仅框选目标区域并按 Enter 保存。
 
 ```powershell
+.\.venv\Scripts\python -m wx_red_helper collect-template chat_header
 .\.venv\Scripts\python -m wx_red_helper collect-template envelope_card
 .\.venv\Scripts\python -m wx_red_helper collect-template open_button
 .\.venv\Scripts\python -m wx_red_helper collect-template result
@@ -21,7 +22,7 @@ py -3.13 -m venv .venv
 
 ## 使用
 
-先运行检测模式。`--allow-title` 必须与微信窗口显示的会话标题完全相同；检测模式绝不发送鼠标输入。
+先运行检测模式。`--allow-title` 是你为本次运行明确指定的会话标签；实际会话验证由 `chat_header` 模板完成，检测模式绝不发送鼠标输入。
 
 ```powershell
 .\.venv\Scripts\python -m wx_red_helper run --mode detect --allow-title "家人群"
@@ -42,4 +43,4 @@ py -3.13 -m venv .venv
 .\build.ps1
 ```
 
-构建脚本仅在三个本地模板都存在时产生 `dist\WxRedHelper.exe`。
+构建脚本仅在四个本地模板都存在时产生 `dist\WxRedHelper.exe`。

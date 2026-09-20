@@ -31,7 +31,7 @@ class SafetyGate:
             return GateDecision(False, "window_not_ready")
         if observation.match is None:
             return GateDecision(False, "no_match")
-        if observation.chat_title not in self._config.allowed_chat_titles:
+        if observation.state.value == "envelope_card" and not observation.chat_header_visible:
             return GateDecision(False, "chat_not_allowed")
         if observation.match.confidence < self._config.minimum_confidence:
             return GateDecision(False, "low_confidence")

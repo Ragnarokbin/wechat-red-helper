@@ -64,7 +64,12 @@ class HelperService:
             return TickResult(ServiceStatus.WINDOW_UNAVAILABLE, "window_unavailable")
         frame = self._capture.capture(window)
         matches = self._recognizer.recognize(frame)
-        stable_match = self._stable_recognizer.accept(matches[0] if matches else None)
+        chat_header_visible = any(match.label == "chat_header" for match in matches)
+        action_match = next(
+            (match for match in matches if match.label in {"envelope_card", "open_button", "result"}),
+            None,
+        )
+        stable_match = self._stable_recognizer.accept(action_match)
         if stable_match is None:
             return TickResult(ServiceStatus.NO_CANDIDATE, "no_stable_match")
         observation = Observation(
@@ -73,18 +78,20 @@ class HelperService:
             match=stable_match,
             window_revision=window.revision,
             window_ready=True,
+            chat_header_visible=chat_header_visible,
         )
         if self._mode is RunMode.DETECT:
             return TickResult(ServiceStatus.CANDIDATE_DETECTED, "candidate_detected")
+        decision = self._safety_gate.evaluate(observation, now, self._mode)
+        if not decision.allowed:
+            if observation.state is UiState.ENVELOPE_CARD:
+                self._state_machine.reset()
+            return TickResult(ServiceStatus.REFUSED, decision.reason)
         action = self._state_machine.advance(observation, now)
         if action.kind is ActionKind.ABORT:
             return TickResult(ServiceStatus.ABORTED, action.reason or "aborted")
         if action.kind is ActionKind.NONE or action.match is None:
             return TickResult(ServiceStatus.NO_CANDIDATE, "no_action")
-        decision = self._safety_gate.evaluate(observation, now, self._mode)
-        if not decision.allowed:
-            self._state_machine.reset()
-            return TickResult(ServiceStatus.REFUSED, decision.reason)
         x, y = action.match.center
         x += window.client_rect.left
         y += window.client_rect.top

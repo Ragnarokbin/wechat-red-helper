@@ -51,11 +51,7 @@ def _run(args: argparse.Namespace) -> int:
 
     def recheck(x: int, y: int) -> bool:
         window = observer.observe()
-        return bool(
-            window
-            and window.title in config.allowed_chat_titles
-            and window.client_rect.contains(x, y)
-        )
+        return bool(window and window.client_rect.contains(x, y))
 
     service = HelperService(
         observer=observer,

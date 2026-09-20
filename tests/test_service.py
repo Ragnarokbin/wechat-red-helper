@@ -21,7 +21,10 @@ class FakeCapture:
 
 class FakeRecognizer:
     def recognize(self, frame: np.ndarray) -> list[TemplateMatch]:
-        return [TemplateMatch("envelope_card", 0.99, 100, 120, 80, 40)]
+        return [
+            TemplateMatch("chat_header", 0.99, 300, 20, 120, 30),
+            TemplateMatch("envelope_card", 0.99, 100, 120, 80, 40),
+        ]
 
 
 class FakeStable:
