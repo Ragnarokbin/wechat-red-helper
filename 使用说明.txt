@@ -8,7 +8,7 @@ Windows 微信红包本地助手 — 使用说明
 
 二、采集模板
 
-双击 WxRedHelper.exe 后会打开终端。每次执行采集命令后，程序会倒计时，请在倒计时内切回微信窗口。
+双击 WxRedHelper.exe 后会显示操作菜单。选择任一采集项后，程序会倒计时，请在倒计时内切回微信窗口。
 
 依次采集以下四个模板：
 
@@ -17,24 +17,35 @@ Windows 微信红包本地助手 — 使用说明
 3. open_button：手动点开红包后，框选圆形“开”按钮。
 4. result：手动领取后，框选结果页中稳定、不与普通聊天重复的区域。
 
-在终端内分别运行：
+在菜单中依次选择 1、2、3、4 完成采集。出现选框后，拖动鼠标框选区域；按空格或 Enter 确认，按 Esc 或 C 取消。取消本次截图会保留已有模板并返回主菜单。
+
+如需在终端中使用命令，也可分别运行：
 
 WxRedHelper.exe collect-template chat_header --delay-seconds 5
 WxRedHelper.exe collect-template envelope_card --delay-seconds 5
 WxRedHelper.exe collect-template open_button --delay-seconds 5
 WxRedHelper.exe collect-template result --delay-seconds 5
 
-出现选框后，拖动鼠标框选区域；按空格或 Enter 确认，按 C 取消。
-
 三、先测试再使用
 
-先用仅检测模式，确保终端提示“已检测到红包候选”时确实对应目标红包：
+先在菜单中选择 5（仅检测模式），确保终端提示“已检测到红包候选”时确实对应目标红包。确认稳定后，可选择：
+
+1. 6：普通自动领取模式，检测间隔为 80ms。
+2. 7：高速自动领取模式，检测间隔为 50ms。
+
+高速模式只缩短检测轮询间隔，不会取消群聊页头验证、两帧稳定识别、点击前窗口复核或异常页面中止机制。
+
+如需使用命令行，普通检测模式为：
 
 WxRedHelper.exe run --mode detect --allow-title "目标群聊"
 
-确认稳定后，才运行自动模式：
+确认稳定后，才运行普通自动模式：
 
 WxRedHelper.exe run --mode auto --allow-title "目标群聊" --interval-ms 80
+
+高速自动模式为：
+
+WxRedHelper.exe run --mode auto --allow-title "目标群聊" --interval-ms 50
 
 按 Ctrl+C 可停止程序。若窗口切换、窗口最小化、识别不确定或页面异常，程序会中止本轮而不继续点击。
 

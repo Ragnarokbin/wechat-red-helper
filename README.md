@@ -34,6 +34,12 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python -m wx_red_helper run --mode auto --allow-title "家人群"
 ```
 
+交互菜单中的“高速自动领取模式”使用 `50ms` 检测间隔；常规自动模式使用 `80ms`。高速模式只提高轮询频率，仍保留群聊页头验证、两帧稳定识别、点击前窗口复核和异常页面中止。
+
+```powershell
+.\.venv\Scripts\python -m wx_red_helper run --mode auto --allow-title "家人群" --interval-ms 50
+```
+
 按 `Ctrl+C` 随时停止。窗口最小化、前台切换、模板不匹配、加载超时或出现未知页面时，本轮不会继续点击。
 
 ## 验证与打包

@@ -74,6 +74,21 @@ def test_menu_returns_after_template_collection(monkeypatch, capsys) -> None:
     assert capsys.readouterr().out.count("采集群聊页头模板") == 2
 
 
+def test_menu_starts_high_speed_auto_mode_with_minimum_interval(monkeypatch, capsys) -> None:
+    answers = iter(["7", "测试群", "0"])
+    runs = []
+    monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
+
+    result = main([], lambda prompt: next(answers))
+
+    assert result == 0
+    assert len(runs) == 1
+    assert runs[0].allow_title == ["测试群"]
+    assert runs[0].mode == "auto"
+    assert runs[0].interval_ms == 50
+    assert "启动高速自动领取模式" in capsys.readouterr().out
+
+
 def test_launch_without_command_exits_cleanly_when_stdin_is_unavailable() -> None:
     def no_stdin(prompt: str) -> str:
         raise EOFError

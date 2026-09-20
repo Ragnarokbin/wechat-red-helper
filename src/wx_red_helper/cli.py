@@ -104,6 +104,11 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         "3": "open_button",
         "4": "result",
     }
+    run_actions = {
+        "5": (RunMode.DETECT.value, 80),
+        "6": (RunMode.AUTO.value, 80),
+        "7": (RunMode.AUTO.value, 50),
+    }
     while True:
         print("\n微信红包本地助手")
         print("1. 采集群聊页头模板")
@@ -112,6 +117,7 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         print("4. 采集结果页模板")
         print("5. 启动仅检测模式")
         print("6. 启动自动领取模式")
+        print("7. 启动高速自动领取模式（50ms）")
         print("0. 退出")
         try:
             choice = read_input("请选择操作：").strip()
@@ -120,7 +126,7 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         if choice in template_actions:
             _collect_template(template_actions[choice], 5)
             continue
-        if choice in {"5", "6"}:
+        if choice in run_actions:
             try:
                 chat_label = read_input("请输入目标群聊名称：").strip()
             except EOFError:
@@ -131,9 +137,9 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
             _run(
                 argparse.Namespace(
                     allow_title=[chat_label],
-                    mode=RunMode.DETECT.value if choice == "5" else RunMode.AUTO.value,
+                    mode=run_actions[choice][0],
                     threshold=0.93,
-                    interval_ms=80,
+                    interval_ms=run_actions[choice][1],
                 )
             )
             continue
