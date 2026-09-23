@@ -18,8 +18,8 @@ from wx_red_helper.window_observer import WechatWindowObserver
 from wx_red_helper.windows_api import WindowsApi
 
 
-MIN_SCAN_INTERVAL_MS = 30
-MAX_SCAN_INTERVAL_MS = 80
+MIN_SCAN_INTERVAL_MS = 10
+MAX_SCAN_INTERVAL_MS = 50
 
 
 def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> int:
@@ -29,7 +29,7 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
     run.add_argument("--allow-title", action="append", required=True, help="允许的微信会话标题")
     run.add_argument("--mode", choices=tuple(mode.value for mode in RunMode), default=RunMode.DETECT.value)
     run.add_argument("--threshold", type=float, default=0.93)
-    run.add_argument("--interval-ms", type=int, default=80)
+    run.add_argument("--interval-ms", type=int, default=50)
     collect = commands.add_parser("collect-template", help="采集当前微信客户区中的模板")
     collect.add_argument("label", choices=TEMPLATE_LABELS)
     collect.add_argument("--delay-seconds", type=float, default=3, help="切回微信窗口前的等待秒数")
@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
 
 def _run(args: argparse.Namespace) -> int:
     if not MIN_SCAN_INTERVAL_MS <= args.interval_ms <= MAX_SCAN_INTERVAL_MS:
-        raise SystemExit("--interval-ms must be between 30 and 80")
+        raise SystemExit("--interval-ms must be between 10 and 50")
     config = AppConfig(tuple(args.allow_title), args.threshold)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     templates = TemplateRepository(_template_directory()).load()
@@ -125,7 +125,7 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
             _collect_template(template_actions[choice], 5)
             continue
         if choice in {"5", "6"}:
-            interval_ms = 80
+            interval_ms = 50
             if choice == "6":
                 interval_ms = _prompt_scan_interval(read_input)
                 if interval_ms is None:
@@ -154,15 +154,15 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
 def _prompt_scan_interval(read_input: Callable[[str], str]) -> int | None:
     while True:
         try:
-            value = int(read_input("请输入扫描间隔（30-80ms）：").strip())
+            value = int(read_input("请输入扫描间隔（10-50ms）：").strip())
         except EOFError:
             return None
         except ValueError:
-            print("扫描间隔必须是 30 到 80 之间的整数毫秒。")
+            print("扫描间隔必须是 10 到 50 之间的整数毫秒。")
             continue
         if MIN_SCAN_INTERVAL_MS <= value <= MAX_SCAN_INTERVAL_MS:
             return value
-        print("扫描间隔必须是 30 到 80 之间的整数毫秒。")
+        print("扫描间隔必须是 10 到 50 之间的整数毫秒。")
 
 
 def wait_before_capture(delay_seconds: float, sleep: object) -> None:

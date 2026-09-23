@@ -79,7 +79,7 @@ def test_menu_returns_after_template_collection(monkeypatch, capsys) -> None:
 
 
 def test_menu_starts_auto_mode_with_requested_minimum_interval(monkeypatch, capsys) -> None:
-    answers = iter(["6", "30", "测试群", "0"])
+    answers = iter(["6", "10", "测试群", "0"])
     runs = []
     prompts: list[str] = []
     monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
@@ -90,12 +90,12 @@ def test_menu_starts_auto_mode_with_requested_minimum_interval(monkeypatch, caps
     assert len(runs) == 1
     assert runs[0].allow_title == ["测试群"]
     assert runs[0].mode == "auto"
-    assert runs[0].interval_ms == 30
-    assert "请输入扫描间隔（30-80ms）：" in prompts
+    assert runs[0].interval_ms == 10
+    assert "请输入扫描间隔（10-50ms）：" in prompts
 
 
 def test_menu_reprompts_until_scan_interval_is_in_range(monkeypatch, capsys) -> None:
-    answers = iter(["6", "29", "不是数字", "81", "80", "测试群", "0"])
+    answers = iter(["6", "9", "不是数字", "51", "50", "测试群", "0"])
     runs = []
     monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
 
@@ -104,11 +104,11 @@ def test_menu_reprompts_until_scan_interval_is_in_range(monkeypatch, capsys) -> 
     assert result == 0
     assert len(runs) == 1
     assert runs[0].allow_title == ["测试群"]
-    assert runs[0].interval_ms == 80
-    assert capsys.readouterr().out.count("扫描间隔必须是 30 到 80 之间的整数毫秒。") == 3
+    assert runs[0].interval_ms == 50
+    assert capsys.readouterr().out.count("扫描间隔必须是 10 到 50 之间的整数毫秒。") == 3
 
 
-@pytest.mark.parametrize("interval_ms", [29, 81])
+@pytest.mark.parametrize("interval_ms", [9])
 def test_command_rejects_scan_interval_outside_selectable_range(interval_ms: int) -> None:
     completed = subprocess.run(
         [
@@ -129,7 +129,7 @@ def test_command_rejects_scan_interval_outside_selectable_range(interval_ms: int
     )
 
     assert completed.returncode == 1
-    assert "--interval-ms must be between 30 and 80" in completed.stderr
+    assert "--interval-ms must be between 10 and 50" in completed.stderr
 
 
 def test_command_rejects_removed_single_confirmation_mode(monkeypatch) -> None:

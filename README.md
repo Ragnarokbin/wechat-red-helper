@@ -34,7 +34,7 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python -m wx_red_helper run --mode auto --allow-title "家人群"
 ```
 
-交互菜单中的“自动领取模式”会先要求输入 `30ms` 到 `80ms` 之间的整数扫描间隔，再输入目标群聊名称。数值越小，扫描越频繁；调整间隔不会取消群聊页头验证、两帧稳定识别、点击前窗口复核和异常页面中止。
+交互菜单中的“自动领取模式”会先要求输入 `10ms` 到 `50ms` 之间的整数扫描间隔，再输入目标群聊名称。数值越小，扫描越频繁；调整间隔不会取消群聊页头验证、两帧稳定识别、点击前窗口复核和异常页面中止。
 
 ```powershell
 .\.venv\Scripts\python -m wx_red_helper run --mode auto --allow-title "家人群" --interval-ms 50
