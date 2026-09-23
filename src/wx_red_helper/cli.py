@@ -18,6 +18,10 @@ from wx_red_helper.window_observer import WechatWindowObserver
 from wx_red_helper.windows_api import WindowsApi
 
 
+MIN_SCAN_INTERVAL_MS = 30
+MAX_SCAN_INTERVAL_MS = 80
+
+
 def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> int:
     parser = argparse.ArgumentParser(description="Windows 微信红包本地助手")
     commands = parser.add_subparsers(dest="command")
@@ -25,7 +29,7 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
     run.add_argument("--allow-title", action="append", required=True, help="允许的微信会话标题")
     run.add_argument("--mode", choices=tuple(mode.value for mode in RunMode), default=RunMode.DETECT.value)
     run.add_argument("--threshold", type=float, default=0.93)
-    run.add_argument("--interval-ms", type=int, default=150)
+    run.add_argument("--interval-ms", type=int, default=80)
     collect = commands.add_parser("collect-template", help="采集当前微信客户区中的模板")
     collect.add_argument("label", choices=TEMPLATE_LABELS)
     collect.add_argument("--delay-seconds", type=float, default=3, help="切回微信窗口前的等待秒数")
@@ -44,8 +48,8 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
 
 
 def _run(args: argparse.Namespace) -> int:
-    if args.interval_ms < 50:
-        raise SystemExit("--interval-ms must be at least 50")
+    if not MIN_SCAN_INTERVAL_MS <= args.interval_ms <= MAX_SCAN_INTERVAL_MS:
+        raise SystemExit("--interval-ms must be between 30 and 80")
     config = AppConfig(tuple(args.allow_title), args.threshold)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
     templates = TemplateRepository(_template_directory()).load()
@@ -104,11 +108,6 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         "3": "open_button",
         "4": "result",
     }
-    run_actions = {
-        "5": (RunMode.DETECT.value, 80),
-        "6": (RunMode.AUTO.value, 80),
-        "7": (RunMode.AUTO.value, 50),
-    }
     while True:
         print("\n微信红包本地助手")
         print("1. 采集群聊页头模板")
@@ -117,7 +116,6 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         print("4. 采集结果页模板")
         print("5. 启动仅检测模式")
         print("6. 启动自动领取模式")
-        print("7. 启动高速自动领取模式（50ms）")
         print("0. 退出")
         try:
             choice = read_input("请选择操作：").strip()
@@ -126,7 +124,12 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         if choice in template_actions:
             _collect_template(template_actions[choice], 5)
             continue
-        if choice in run_actions:
+        if choice in {"5", "6"}:
+            interval_ms = 80
+            if choice == "6":
+                interval_ms = _prompt_scan_interval(read_input)
+                if interval_ms is None:
+                    return 0
             try:
                 chat_label = read_input("请输入目标群聊名称：").strip()
             except EOFError:
@@ -137,15 +140,29 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
             _run(
                 argparse.Namespace(
                     allow_title=[chat_label],
-                    mode=run_actions[choice][0],
+                    mode=RunMode.DETECT.value if choice == "5" else RunMode.AUTO.value,
                     threshold=0.93,
-                    interval_ms=run_actions[choice][1],
+                    interval_ms=interval_ms,
                 )
             )
             continue
         if choice == "0":
             return 0
         print("无效选项，请重新选择。")
+
+
+def _prompt_scan_interval(read_input: Callable[[str], str]) -> int | None:
+    while True:
+        try:
+            value = int(read_input("请输入扫描间隔（30-80ms）：").strip())
+        except EOFError:
+            return None
+        except ValueError:
+            print("扫描间隔必须是 30 到 80 之间的整数毫秒。")
+            continue
+        if MIN_SCAN_INTERVAL_MS <= value <= MAX_SCAN_INTERVAL_MS:
+            return value
+        print("扫描间隔必须是 30 到 80 之间的整数毫秒。")
 
 
 def wait_before_capture(delay_seconds: float, sleep: object) -> None:

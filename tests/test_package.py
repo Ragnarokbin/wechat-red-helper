@@ -2,6 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from wx_red_helper.cli import localize_status, main, runtime_root, wait_before_capture
 
 def test_module_exposes_help() -> None:
@@ -74,8 +76,24 @@ def test_menu_returns_after_template_collection(monkeypatch, capsys) -> None:
     assert capsys.readouterr().out.count("采集群聊页头模板") == 2
 
 
-def test_menu_starts_high_speed_auto_mode_with_minimum_interval(monkeypatch, capsys) -> None:
-    answers = iter(["7", "测试群", "0"])
+def test_menu_starts_auto_mode_with_requested_minimum_interval(monkeypatch, capsys) -> None:
+    answers = iter(["6", "30", "测试群", "0"])
+    runs = []
+    prompts: list[str] = []
+    monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
+
+    result = main([], lambda prompt: prompts.append(prompt) or next(answers))
+
+    assert result == 0
+    assert len(runs) == 1
+    assert runs[0].allow_title == ["测试群"]
+    assert runs[0].mode == "auto"
+    assert runs[0].interval_ms == 30
+    assert "请输入扫描间隔（30-80ms）：" in prompts
+
+
+def test_menu_reprompts_until_scan_interval_is_in_range(monkeypatch, capsys) -> None:
+    answers = iter(["6", "29", "不是数字", "81", "80", "测试群", "0"])
     runs = []
     monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
 
@@ -84,9 +102,32 @@ def test_menu_starts_high_speed_auto_mode_with_minimum_interval(monkeypatch, cap
     assert result == 0
     assert len(runs) == 1
     assert runs[0].allow_title == ["测试群"]
-    assert runs[0].mode == "auto"
-    assert runs[0].interval_ms == 50
-    assert "启动高速自动领取模式" in capsys.readouterr().out
+    assert runs[0].interval_ms == 80
+    assert capsys.readouterr().out.count("扫描间隔必须是 30 到 80 之间的整数毫秒。") == 3
+
+
+@pytest.mark.parametrize("interval_ms", [29, 81])
+def test_command_rejects_scan_interval_outside_selectable_range(interval_ms: int) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "wx_red_helper",
+            "run",
+            "--allow-title",
+            "测试群",
+            "--mode",
+            "auto",
+            "--interval-ms",
+            str(interval_ms),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert "--interval-ms must be between 30 and 80" in completed.stderr
 
 
 def test_launch_without_command_exits_cleanly_when_stdin_is_unavailable() -> None:
