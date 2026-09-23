@@ -40,12 +40,6 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python -m wx_red_helper run --mode auto --allow-title "家人群" --interval-ms 50
 ```
 
-菜单中的“单次确认自动领取（固定 50ms）”不要求输入扫描间隔。它会持续每 50ms 扫描，每个页面目标只需一张截图匹配即可进入原有领取流程。它仍保留置信度、群聊页头、页面顺序与点击前窗口复核，但误匹配风险高于普通自动模式；仅在模板、缩放比例和主题已通过检测模式验证后使用。
-
-```powershell
-.\.venv\Scripts\python -m wx_red_helper run --mode single --allow-title "家人群"
-```
-
 按 `Ctrl+C` 随时停止。窗口最小化、前台切换、模板不匹配、加载超时或出现未知页面时，本轮不会继续点击。
 
 ## 验证与打包

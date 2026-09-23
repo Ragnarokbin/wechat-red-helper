@@ -20,7 +20,6 @@ from wx_red_helper.windows_api import WindowsApi
 
 MIN_SCAN_INTERVAL_MS = 30
 MAX_SCAN_INTERVAL_MS = 80
-SINGLE_CONFIRMATION_INTERVAL_MS = 50
 
 
 def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> int:
@@ -49,9 +48,7 @@ def main(argv: list[str] | None = None, pause: Callable[[str], str] = input) -> 
 
 
 def _run(args: argparse.Namespace) -> int:
-    mode = RunMode(args.mode)
-    interval_ms = SINGLE_CONFIRMATION_INTERVAL_MS if mode is RunMode.SINGLE else args.interval_ms
-    if not MIN_SCAN_INTERVAL_MS <= interval_ms <= MAX_SCAN_INTERVAL_MS:
+    if not MIN_SCAN_INTERVAL_MS <= args.interval_ms <= MAX_SCAN_INTERVAL_MS:
         raise SystemExit("--interval-ms must be between 30 and 80")
     config = AppConfig(tuple(args.allow_title), args.threshold)
     observer = WechatWindowObserver(WindowsApi(), ("微信", "WeChat"))
@@ -68,18 +65,18 @@ def _run(args: argparse.Namespace) -> int:
         observer=observer,
         capture=ClientCapture(),
         recognizer=FrameRecognizer(templates, config.minimum_confidence),
-        stable_recognizer=StableRecognizer(required_frames=1 if mode is RunMode.SINGLE else 2),
+        stable_recognizer=StableRecognizer(),
         safety_gate=SafetyGate(config),
         state_machine=RedEnvelopeStateMachine(timedelta(seconds=3)),
         input_controller=InputController(send_windows_click, recheck),
     )
-    service.set_mode(mode)
+    service.set_mode(RunMode(args.mode))
     print(f"正在运行：{localize_status(f'mode_{service.mode.value}')}；按 Ctrl+C 停止")
     try:
         while True:
             result = service.tick(datetime.now(UTC))
             print(localize_status(result.last_action))
-            time.sleep(interval_ms / 1000)
+            time.sleep(args.interval_ms / 1000)
     except KeyboardInterrupt:
         service.stop_now()
         print("已停止")
@@ -119,7 +116,6 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         print("4. 采集结果页模板")
         print("5. 启动仅检测模式")
         print("6. 启动自动领取模式")
-        print("7. 启动单次确认自动领取（固定 50ms）")
         print("0. 退出")
         try:
             choice = read_input("请选择操作：").strip()
@@ -128,8 +124,8 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
         if choice in template_actions:
             _collect_template(template_actions[choice], 5)
             continue
-        if choice in {"5", "6", "7"}:
-            interval_ms = SINGLE_CONFIRMATION_INTERVAL_MS if choice == "7" else 80
+        if choice in {"5", "6"}:
+            interval_ms = 80
             if choice == "6":
                 interval_ms = _prompt_scan_interval(read_input)
                 if interval_ms is None:
@@ -144,11 +140,7 @@ def _interactive_menu(read_input: Callable[[str], str]) -> int:
             _run(
                 argparse.Namespace(
                     allow_title=[chat_label],
-                    mode={
-                        "5": RunMode.DETECT.value,
-                        "6": RunMode.AUTO.value,
-                        "7": RunMode.SINGLE.value,
-                    }[choice],
+                    mode=RunMode.DETECT.value if choice == "5" else RunMode.AUTO.value,
                     threshold=0.93,
                     interval_ms=interval_ms,
                 )
@@ -182,7 +174,6 @@ def localize_status(status: str) -> str:
         "mode_stopped": "已停止",
         "mode_detect": "仅检测模式",
         "mode_auto": "自动领取模式",
-        "mode_single": "单次确认自动领取模式（固定 50ms）",
         "no_action": "未执行操作",
         "no_stable_match": "未检测到稳定目标",
         "window_unavailable": "微信窗口不可用",

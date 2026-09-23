@@ -28,8 +28,8 @@ class FrameRecognizer:
 
 class StableRecognizer:
     def __init__(self, required_frames: int = 2, position_tolerance: int = 6) -> None:
-        if required_frames < 1:
-            raise ValueError("required_frames must be at least 1")
+        if required_frames < 2:
+            raise ValueError("required_frames must be at least 2")
         self._required_frames = required_frames
         self._position_tolerance = position_tolerance
         self._previous: TemplateMatch | None = None

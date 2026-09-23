@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from wx_red_helper.models import TemplateMatch
 from wx_red_helper.recognizer import FrameRecognizer, StableRecognizer
@@ -25,11 +26,9 @@ def test_stable_recognizer_requires_two_nearby_matching_frames() -> None:
     assert stable.accept(match) == match
 
 
-def test_stable_recognizer_can_accept_the_first_matching_frame() -> None:
-    stable = StableRecognizer(required_frames=1)
-    match = TemplateMatch("open_button", 0.99, 20, 30, 40, 40)
-
-    assert stable.accept(match) == match
+def test_stable_recognizer_rejects_single_frame_configuration() -> None:
+    with pytest.raises(ValueError, match="required_frames must be at least 2"):
+        StableRecognizer(required_frames=1)
 
 
 def test_stable_recognizer_resets_for_changed_location() -> None:
