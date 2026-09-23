@@ -6,6 +6,7 @@ class RunMode(StrEnum):
     STOPPED = "stopped"
     DETECT = "detect"
     AUTO = "auto"
+    SINGLE = "single"
 
 
 class UiState(StrEnum):

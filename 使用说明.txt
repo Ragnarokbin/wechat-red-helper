@@ -34,6 +34,10 @@ WxRedHelper.exe collect-template result --delay-seconds 5
 
 调整扫描间隔只会改变轮询频率，不会取消群聊页头验证、两帧稳定识别、点击前窗口复核或异常页面中止机制。
 
+菜单项 7 是“单次确认自动领取（固定 50ms）”：不需要输入扫描间隔，输入目标群聊名称后即开始。此模式中，每个页面目标在一张截图中识别到即可进入原有领取流程，因此比普通自动模式更快，但误匹配风险更高；只建议在模板、缩放比例和微信主题均已通过仅检测模式验证后使用。
+
+单次确认模式仍保留识别置信度、群聊页头验证、红包卡片→“开”按钮→结果页的页面顺序，以及点击前窗口复核。它不会只截一张图后停止，而是每 50ms 持续扫描。
+
 如需使用命令行，普通检测模式为：
 
 WxRedHelper.exe run --mode detect --allow-title "目标群聊"
@@ -41,6 +45,10 @@ WxRedHelper.exe run --mode detect --allow-title "目标群聊"
 确认稳定后，才运行自动模式。扫描间隔必须是 30 到 80 的整数毫秒：
 
 WxRedHelper.exe run --mode auto --allow-title "目标群聊" --interval-ms 50
+
+单次确认自动领取模式固定使用 50ms：
+
+WxRedHelper.exe run --mode single --allow-title "目标群聊"
 
 按 Ctrl+C 可停止程序。若窗口切换、窗口最小化、识别不确定或页面异常，程序会中止本轮而不继续点击。
 

@@ -92,6 +92,20 @@ def test_menu_starts_auto_mode_with_requested_minimum_interval(monkeypatch, caps
     assert "请输入扫描间隔（30-80ms）：" in prompts
 
 
+def test_menu_starts_single_confirmation_auto_mode_at_fixed_50ms(monkeypatch) -> None:
+    answers = iter(["7", "测试群", "0"])
+    runs = []
+    monkeypatch.setattr("wx_red_helper.cli._run", lambda args: runs.append(args) or 0)
+
+    result = main([], lambda prompt: next(answers))
+
+    assert result == 0
+    assert len(runs) == 1
+    assert runs[0].allow_title == ["测试群"]
+    assert runs[0].mode == "single"
+    assert runs[0].interval_ms == 50
+
+
 def test_menu_reprompts_until_scan_interval_is_in_range(monkeypatch, capsys) -> None:
     answers = iter(["6", "29", "不是数字", "81", "80", "测试群", "0"])
     runs = []
